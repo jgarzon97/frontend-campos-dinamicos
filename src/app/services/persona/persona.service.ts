@@ -4,13 +4,7 @@ import { Observable } from 'rxjs';
 
 export interface Persona {
   id?: number;
-  nombre: string;
-  apellido: string;
-  edad: number;
-  correo: string;
-  telefono: string;
-  direccion: string;
-  fecha_nacimiento: string;
+  [key: string]: any;
 }
 
 @Injectable({
@@ -28,6 +22,14 @@ export class PersonaService {
 
   getPersonas(): Observable<Persona[]> {
     return this.http.get<Persona[]>(this.apiUrl);
+  }
+
+  updatePersona(persona: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${persona.id}`, persona);
+  }
+
+  deletePersona(id?: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
   addField(newField: { name: string, type: string }): Observable<any> {

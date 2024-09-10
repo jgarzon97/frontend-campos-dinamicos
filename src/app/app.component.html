@@ -1,97 +1,72 @@
 <div class="container">
-    <div class="form-container">
-        <h2>AGREGAR PERSONA</h2>
-        <form (ngSubmit)="onSubmit()" #personaForm="ngForm">
-            <div class="form-group">
-                <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" class="form-control" required [(ngModel)]="persona.nombre" name="nombre"
-                    #nombre="ngModel">
-                <div *ngIf="nombre.invalid && nombre.touched" class="text-danger">
-                    El nombre es obligatorio.
-                </div>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="form-container my-4 p-4 bg-light rounded shadow-sm">
+                <h2 class="mb-4">{{ isEditing ? 'EDITAR' : 'AGREGAR' }}</h2>
+                <form (ngSubmit)="onSubmit()" #personaForm="ngForm">
+                    <div *ngFor="let columna of columnas" class="form-group mb-3">
+                        <label [for]="columna" class="form-label">{{ columna | titlecase }}</label>
+                        <input *ngIf="columna !== 'id'" [type]="getInputType(columna)" [id]="columna" class="form-control"
+                            [(ngModel)]="persona[columna]" [name]="columna" #field="ngModel"
+                            [required]="columna === 'nombre' || columna === 'apellido' || columna === 'correo'" />
+                        <div *ngIf="persona.invalid && persona.touched" class="text-danger mt-1">
+                            El campo {{ columna | titlecase }} es obligatorio.
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" [disabled]="personaForm.invalid">
+                            {{ isEditing ? 'Actualizar' : 'Agregar' }}
+                        </button>
+                        <button *ngIf="isEditing" type="button" class="btn btn-secondary" (click)="onCancel()">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="apellido">Apellido</label>
-                <input type="text" id="apellido" class="form-control" required [(ngModel)]="persona.apellido"
-                    name="apellido" #apellido="ngModel">
-                <div *ngIf="apellido.invalid && apellido.touched" class="text-danger">
-                    El apellido es obligatorio.
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="edad">Edad</label>
-                <input type="number" id="edad" class="form-control" [(ngModel)]="persona.edad" name="edad">
-            </div>
-            <div class="form-group">
-                <label for="correo">Correo</label>
-                <input type="email" id="correo" class="form-control" required [(ngModel)]="persona.correo" name="correo"
-                    #correo="ngModel">
-                <div *ngIf="correo.invalid && correo.touched" class="text-danger">
-                    Correo no válido.
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="telefono">Teléfono</label>
-                <input type="text" id="telefono" class="form-control" [(ngModel)]="persona.telefono" name="telefono">
-            </div>
-            <div class="form-group">
-                <label for="direccion">Dirección</label>
-                <input type="text" id="direccion" class="form-control" [(ngModel)]="persona.direccion" name="direccion">
-            </div>
-            <div class="form-group">
-                <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                <input type="date" id="fecha_nacimiento" [(ngModel)]="persona.fecha_nacimiento" name="fecha_nacimiento">
-            </div>
-            <button type="submit" class="btn btn-primary" [disabled]="personaForm.invalid">Agregar Persona</button>
-        </form>
+        </div>
     </div>
 
-    <div class="table-container">
-        <h2>LISTADO PERSONAS</h2>
-        <table class="table table-bordered">
-            <thead>
+    <div class="table-container my-4 p-4 bg-light rounded shadow-sm">
+        <h2 class="mb-4">REGISTROS</h2>
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Edad</th>
-                    <th>Correo</th>
-                    <th>Teléfono</th>
-                    <th>Dirección</th>
-                    <th>Nacimiento</th>
+                    <th *ngFor="let columna of columnas">{{ columna }}</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let persona of personas">
-                    <td>{{ persona.id }}</td>
-                    <td>{{ persona.nombre }}</td>
-                    <td>{{ persona.apellido }}</td>
-                    <td>{{ persona.edad }}</td>
-                    <td>{{ persona.correo }}</td>
-                    <td>{{ persona.telefono }}</td>
-                    <td>{{ persona.direccion }}</td>
-                    <td>{{ persona.fecha_nacimiento }}</td>
+                <tr *ngFor="let item of datos" (click)="onEdit(item)">
+                    <td *ngFor="let columna of columnas">{{ item[columna] }}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" (click)="onDelete(item, $event)">Eliminar</button>
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
-
-<div class="formCampos-container">
-    <h2>Agregar Campo a la Base de Datos</h2>
-    <form (ngSubmit)="onAddField()" #addFieldForm="ngForm">
-        <div class="form-group">
-            <label for="fieldName">Nombre del Campo</label>
-            <input type="text" id="fieldName" class="form-control" required [(ngModel)]="newField.name" name="fieldName">
+<br>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="formCampos-container small-form my-4 p-4 bg-light rounded shadow-sm">
+            <h2 class="mb-4">NUEVO CAMPO</h2>
+            <form (ngSubmit)="onAddField()" #addFieldForm="ngForm">
+                <div class="form-group mb-3">
+                    <label for="fieldName" class="form-label">Nombre del Campo</label>
+                    <input type="text" id="fieldName" class="form-control" required [(ngModel)]="newField.name"
+                        name="fieldName">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="fieldType" class="form-label">Tipo de Dato</label>
+                    <select id="fieldType" class="form-control" [(ngModel)]="newField.type" name="fieldType">
+                        <option value="text">Texto</option>
+                        <option value="number">Número</option>
+                        <option value="date">Fecha</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" [disabled]="addFieldForm.invalid">Agregar Campo</button>
+            </form>
         </div>
-        <div class="form-group">
-            <label for="fieldType">Tipo de Dato</label>
-            <select id="fieldType" class="form-control" [(ngModel)]="newField.type" name="fieldType">
-                <option value="text">Texto</option>
-                <option value="number">Número</option>
-                <option value="date">Fecha</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary" [disabled]="addFieldForm.invalid">Agregar Campo</button>
-    </form>
+    </div>
 </div>
